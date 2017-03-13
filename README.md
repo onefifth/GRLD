@@ -1,5 +1,5 @@
 ### NOTE
-This is a modified fork of the [original GRLD project](https://github.com/neuoy/GRLD/master/) for personal use and should be considered **unstable**. Anyone looking to use GRLD should check out the [official repo](https://github.com/neuoy/GRLD/master/) unless they are specifically looking for the modifications provided in this version. The original readme contents remain below. 
+This is a modified fork of the [original GRLD project](https://github.com/neuoy/GRLD) for personal use and should be considered **unstable**. Anyone looking to use GRLD should check out the [official repo](https://github.com/neuoy/GRLD) unless they are specifically looking for the modifications provided in this version. The original readme contents remain below. 
 
 
 # GRLD
