@@ -2,6 +2,7 @@
 
 local print = print
 local wx = require( "wx" )
+local wxaui = require( "wxaui" )
 _G.print = print -- override wx print function with original one
 local socket = require( "socket" )
 local mainthread = require( "mainthread" )
@@ -85,7 +86,7 @@ end
 
 function meta.__index:initLayout_()
 	self.root = wx.wxSplitterWindow( self.frame, wx.wxID_ANY, wx.wxDefaultPosition, wx.wxDefaultSize, 0 ) -- root widget
-	self.sourceBook = wx.wxNotebook( self.root, wx.wxID_ANY ) -- book of source code pages
+	self.sourceBook = wxaui.wxAuiNotebook( self.root, wx.wxID_ANY ) -- book of source code pages
 	self.debugRoot = wx.wxSplitterWindow( self.root, wx.wxID_ANY, wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
 
 	-- threads window
@@ -305,7 +306,7 @@ end
 
 function meta.__index:setSourcePageFocus( source )
 	local page = self:getSourcePage( source )
-	self.sourceBook:ChangeSelection( page.pageIdx )
+	self.sourceBook:SetSelection( page.pageIdx )
 end
 
 function meta.__index:findSourcePageFocus()
