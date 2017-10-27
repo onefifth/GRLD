@@ -427,13 +427,13 @@ end
 
 function meta.__index:refreshScrollPosition_()
 	local config = self:getActiveClientConfig_()
-	
+
 	for source, sp in pairs( config.scrollPositions ) do
-		local page = self.window:getSourcePage( source )
+		local page = self.window:findSourcePage( source )
 		if page ~= nil then
 			page:SetScrollPos(sp)
 		end
-	end	
+	end
 end
 
 function meta.__index:refreshBreakPoints_()
@@ -784,19 +784,20 @@ function meta.__index:saveConfig_( name )
 	clientConfig.dirty = false
 	local name = clientConfig.name
 	local openFiles = {}
+	local scrollPositions = {}
 	for source, page in pairs( self.window:getSourcePages() ) do
 		openFiles[page.pageIdx+1] = source
+		scrollPositions[source] = clientConfig.scrollPositions[source]
 	end
 	local breakpoints = clientConfig.breakpoints
-	local scrollPositions = clientConfig.scrollPositions
 
 	local path = "clients/"..name.."/config.lua"
 	lfs.mkdir( "clients" )
 	lfs.mkdir( "clients/"..name )
 	local file = assert( io.open( path, "w" ) )
-	file:write( grldc.net.serialize( { 
-		mappings = clientConfig.mappings, 
-		openFiles = openFiles, 
+	file:write( grldc.net.serialize( {
+		mappings = clientConfig.mappings,
+		openFiles = openFiles,
 		breakpoints = breakpoints,
 		scrollPositions = scrollPositions,
 		breakOnConnection = clientConfig.breakOnConnection
