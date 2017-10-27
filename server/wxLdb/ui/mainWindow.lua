@@ -136,6 +136,20 @@ function meta.__index:initLayout_()
 	menuBar:Append( helpMenu, "&Help" )
 	self.frame:SetMenuBar( menuBar )
 
+	local hotkeyBindings = wx.wxAcceleratorTable({
+		{ wx.wxACCEL_CTRL,			string.byte('O'),	ID_FILE_OPEN },
+		{ wx.wxACCEL_CTRL,			string.byte('W'),	ID_FILE_CLOSE },
+		{ wx.wxACCEL_CTRL,			wx.WXK_F4,			ID_FILE_CLOSE },
+		{ wx.wxACCEL_ALT,			wx.WXK_F4,			ID_EXIT },
+		{ wx.wxACCEL_NORMAL,		wx.WXK_F12,			ID_BREAK },
+		{ wx.wxACCEL_NORMAL,		wx.WXK_F5,			ID_CONTINUE },
+		{ wx.wxACCEL_NORMAL,		wx.WXK_F10,			ID_STEP_OVER },
+		{ wx.wxACCEL_NORMAL,		wx.WXK_F11,			ID_STEP_INTO },
+		{ wx.wxACCEL_SHIFT,			wx.WXK_F11,			ID_STEP_OUT },
+		{ wx.wxACCEL_NORMAL,		wx.WXK_F9,			ID_TOGGLE_BREAKPOINT },
+	})
+	self.frame:SetAcceleratorTable( hotkeyBindings )
+
 	self.frame:Connect( ID_FILE_OPEN, wx.wxEVT_COMMAND_MENU_SELECTED, function( ... ) self:onFileOpen_( ... ) end )
 	self.frame:Connect( ID_FILE_CLOSE, wx.wxEVT_COMMAND_MENU_SELECTED, function( ... ) self:onFileClose_( ... ) end )
 	self.frame:Connect( ID_HELP_MANUAL, wx.wxEVT_COMMAND_MENU_SELECTED, function( ... ) self:onHelpManual_( ... ) end )
