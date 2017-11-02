@@ -200,7 +200,14 @@ function meta.__index:onFileOpen_( event )
 end
 
 function meta.__index:onFileClose_( event )
-	local idx = self.sourceBook:GetSelection()
+	local eventIsAuiPageClose = event:GetEventType() == wxaui.wxEVT_COMMAND_AUINOTEBOOK_PAGE_CLOSE
+	local idx
+	if eventIsAuiPageClose then
+		idx = event:GetSelection() -- When closing unfocused tabs
+	else
+		idx = self.sourceBook:GetSelection()
+	end
+
 	if idx >= 0 and idx < self.sourceBook:GetPageCount() then
 		local page = nil
 		local source = nil
@@ -215,10 +222,9 @@ function meta.__index:onFileClose_( event )
 		assert( page ~= nil )
 
 		-- AuiNotebook handles removing it's own pages.
-		if (event:GetEventType() ~= wxaui.wxEVT_COMMAND_AUINOTEBOOK_PAGE_CLOSE) then
+		if not eventIsAuiPageClose then
 			self.sourceBook:DeletePage( page.pageIdx )
 		end
-
 		page:destroy()
 		self.sourcePages[source] = nil
 		self:runEvents_( "onFileClosed", source )
