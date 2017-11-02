@@ -157,6 +157,8 @@ function meta.__index:initLayout_()
 	self.frame:Connect( ID_HELP_ABOUT, wx.wxEVT_COMMAND_MENU_SELECTED, function( ... ) self:onHelpAbout_( ... ) end )
 	self.frame:Connect( ID_EXIT, wx.wxEVT_COMMAND_MENU_SELECTED, function( ... ) self:onExitCommand_( ... ) end )
 	self.frame:Connect( wx.wxEVT_CLOSE_WINDOW, function( ... ) self:onWindowClosed_( ... ) end )
+
+	self.frame:Connect( wxaui.wxEVT_COMMAND_AUINOTEBOOK_PAGE_CLOSE, function( ... ) self:onFileClose_( ... ) end )
 end
 
 function meta.__index:registerEvent( ID, callback )
@@ -211,7 +213,12 @@ function meta.__index:onFileClose_( event )
 			end
 		end
 		assert( page ~= nil )
-        self.sourceBook:DeletePage( page.pageIdx )
+
+		-- AuiNotebook handles removing it's own pages.
+		if (event:GetEventType() ~= wxaui.wxEVT_COMMAND_AUINOTEBOOK_PAGE_CLOSE) then
+			self.sourceBook:DeletePage( page.pageIdx )
+		end
+
 		page:destroy()
 		self.sourcePages[source] = nil
 		self:runEvents_( "onFileClosed", source )
