@@ -127,7 +127,7 @@ function meta.__index:initLayout_()
 
 	local fileMenu = wx.wxMenu()
 	fileMenu:Append( ID_FILE_OPEN, "&Open\tCtrl-O", "Open a source file" )
-	fileMenu:Append( ID_FILE_OPEN_WITH, "&Open With...\tCtrl-S", "Open current source file in external application" )
+	fileMenu:Append( ID_FILE_OPEN_WITH, "&Open With...\tCtrl-E", "Open current source file in external application" )
 	fileMenu:Append( ID_FILE_CLOSE, "&Close\tCtrl-F4", "Close the current source file" )
 	fileMenu:Append( ID_EXIT, "E&xit\tAlt-F4", "Exit the GRLD server" )
 
@@ -151,7 +151,7 @@ function meta.__index:initLayout_()
 
 	local hotkeyBindings = wx.wxAcceleratorTable({
 		{ wx.wxACCEL_CTRL,			string.byte('O'),	ID_FILE_OPEN },
-		{ wx.wxACCEL_CTRL,			string.byte('S'),	ID_FILE_OPEN_WITH },
+		{ wx.wxACCEL_CTRL,			string.byte('E'),	ID_FILE_OPEN_WITH },
 		{ wx.wxACCEL_CTRL,			string.byte('W'),	ID_FILE_CLOSE },
 		{ wx.wxACCEL_CTRL,			wx.WXK_F4,			ID_FILE_CLOSE },
 		{ wx.wxACCEL_ALT,			wx.WXK_F4,			ID_EXIT },
