@@ -46,6 +46,8 @@ ID_HELP_ABOUT = ui.id.new()
 
 ID_EXIT = wx.wxID_EXIT
 
+ID_ROOT_SPLITTER = ui.id.new()
+
 local meta = { __index = {} }
 
 function new()
@@ -56,7 +58,7 @@ function new()
 end
 
 function meta.__index:init()
-	self.frame = wx.wxFrame( wx.NULL, wx.wxID_ANY, "GRLD server", wx.wxDefaultPosition, wx.wxDefaultSize, wx.wxDEFAULT_FRAME_STYLE + wx.wxMAXIMIZE)
+	self.frame = wx.wxFrame( wx.NULL, wx.wxID_ANY, "GRLD server", wx.wxDefaultPosition, wx.wxSize(800, 600), wx.wxDEFAULT_FRAME_STYLE + wx.wxMAXIMIZE)
 	mainthread.init( self.frame )
 
 	self:initLayout_()
@@ -66,14 +68,19 @@ function meta.__index:init()
 
 	self.idleUpdates = {}
 	self.frame:Connect( wx.wxEVT_IDLE, function( event ) self:onIdleUpdate_( event ) end )
+	self.frame:Connect( wx.wxEVT_SIZE, function( event ) self:onResize_( event ) end )
 
-	self.events = { 
-		onBreakPointChanged = {}, 
-		onFileOpen = {}, 
-		onFileClosed = {}, 
+	self.events = {
+		onBreakPointChanged = {},
+		onFileOpen = {},
+		onFileClosed = {},
 		onApplicationExiting = {},
-		onScrollChanged = {}
+		onScrollChanged = {},
+		onResize = {},
 	}
+
+	self.windowHasResized = false
+	self.prevRootSashPosition = -200
 end
 
 function meta.__index:show( show )
@@ -85,7 +92,7 @@ function meta.__index:close()
 end
 
 function meta.__index:initLayout_()
-	self.root = wx.wxSplitterWindow( self.frame, wx.wxID_ANY, wx.wxDefaultPosition, wx.wxDefaultSize, 0 ) -- root widget
+	self.root = wx.wxSplitterWindow( self.frame, ID_ROOT_SPLITTER, wx.wxDefaultPosition, wx.wxDefaultSize, 0 ) -- root widget
 	self.sourceBook = wxaui.wxAuiNotebook( self.root, wx.wxID_ANY ) -- book of source code pages
 	self.debugRoot = wx.wxSplitterWindow( self.root, wx.wxID_ANY, wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
 
@@ -110,7 +117,9 @@ function meta.__index:initLayout_()
 
 	self.root:SplitHorizontally( self.sourceBook, self.debugRoot, -200 )
 	self.debugRoot:SplitVertically( self.threads:getRoot(), self.debugBooks, 250 )
+	self.debugRoot:SetMinimumPaneSize( 100 )
 	self.debugBooks:SplitVertically( self.debugBookL, self.debugBookR )
+	self.debugBooks:SetMinimumPaneSize( 350 )
 
 	self.sourcePages = {}
 
@@ -158,7 +167,9 @@ function meta.__index:initLayout_()
 	self.frame:Connect( ID_EXIT, wx.wxEVT_COMMAND_MENU_SELECTED, function( ... ) self:onExitCommand_( ... ) end )
 	self.frame:Connect( wx.wxEVT_CLOSE_WINDOW, function( ... ) self:onWindowClosed_( ... ) end )
 
-	self.frame:Connect( wxaui.wxEVT_COMMAND_AUINOTEBOOK_PAGE_CLOSE, function( ... ) self:onFileClose_( ... ) end )
+	self.root:Connect( ID_ROOT_SPLITTER, wx.wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGING, function( ... ) self:onRootSashPositionChanged_( ... ) end )
+
+	self.sourceBook:Connect( wxaui.wxEVT_COMMAND_AUINOTEBOOK_PAGE_CLOSE, function( ... ) self:onFileClose_( ... ) end )
 end
 
 function meta.__index:registerEvent( ID, callback )
@@ -184,6 +195,18 @@ function meta.__index:runEvents_( eventName, ... )
 	for _, callback in pairs( self.events[eventName] ) do
 		callback( ... )
 	end
+end
+
+function meta.__index:onResize_( event )
+	self.root:SetSashPosition( self.prevRootSashPosition )
+	self.windowHasResized = true
+	self:runEvents_( "onResize" )
+	event:Skip()
+end
+
+function meta.__index:onRootSashPositionChanged_( event )
+	self.prevRootSashPosition = event:GetSashPosition() - self.root:GetSize():GetHeight()
+	event:Skip()
 end
 
 function meta.__index:onFileOpen_( event )
@@ -401,5 +424,11 @@ function meta.__index:onIdleUpdate_( event )
 	if not self.active then
 		--socket.sleep( 0.05 )
 	end
+
+	if self.windowHasResized then
+		self.windowHasResized = false
+		self.root:SetSashPosition( self.prevRootSashPosition )
+	end
+
 	event:RequestMore( true )
 end
