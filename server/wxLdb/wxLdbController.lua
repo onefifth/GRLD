@@ -143,6 +143,7 @@ function meta.__index:run_()
 
 	self.window:registerEvent( "onBreakPointChanged", wrapCb( function( ... ) self:onBreakPointChanged_( ... ) end ) )
 	self.window:registerEvent( "onFileOpen", wrapCb( function( ... ) self:onFileOpen_( ... ) end ) )
+	self.window:registerEvent( "onFileOpenWith", wrapCb( function( ... ) self:onFileOpenWith_( ... ) end ) )
 	self.window:registerEvent( "onFileClosed", wrapCb( function( ... ) self:onFileClosed_( ... ) end ) )
 	self.window:registerEvent( "onScrollChanged", wrapCb(function( ... ) self:onScrollChanged_( ...) end ) )
 
@@ -502,6 +503,26 @@ function meta.__index:onFileOpen_( path )
 	self:refreshScrollPosition_()
 end
 
+function meta.__index:onFileOpenWith_( source, linenum )
+	local clientConfig = self:getActiveClientConfig_()
+	local externalCmd = clientConfig.externalEditorCommand
+
+	if not clientConfig.externalEditorCommand then
+		externalCmd = self.window:externalCommandPopup()
+		clientConfig.externalEditorCommand = externalCmd
+		clientConfig.dirty = true
+	end
+
+	local cmdvars = {
+		sourcepath = string.sub( source, 2 ),
+		linenum = linenum,
+	}
+
+	local fullCmd = string.gsub(externalCmd, "${(.-)}", function(key) return cmdvars[key] end)
+	print( "Running external command: \'" .. fullCmd .. "\'" )
+	os.execute( fullCmd )
+end
+
 function meta.__index:onFileClosed_( source )
 	for id, clientData in pairs( self.clients ) do
 		clientData.config.dirty = true
@@ -796,6 +817,7 @@ function meta.__index:saveConfig_( name )
 	lfs.mkdir( "clients/"..name )
 	local file = assert( io.open( path, "w" ) )
 	file:write( grldc.net.serialize( {
+		externalEditorCommand = clientConfig.externalEditorCommand,
 		mappings = clientConfig.mappings,
 		openFiles = openFiles,
 		breakpoints = breakpoints,
@@ -814,6 +836,7 @@ function meta.__index:loadConfig_( name )
 	if file ~= nil then
 		local config = grldc.net.deserialize( file:read( "*a" ) )
 		file:close()
+		clientConfig.externalEditorCommand = config.externalEditorCommand
 		clientConfig.mappings = config.mappings
 		clientConfig.breakOnConnection = config.breakOnConnection
 

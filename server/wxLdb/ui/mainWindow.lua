@@ -39,6 +39,7 @@ ID_STEP_OUT = ui.id.new()
 ID_TOGGLE_BREAKPOINT = ui.id.new()
 
 ID_FILE_OPEN = ui.id.new()
+ID_FILE_OPEN_WITH = ui.id.new()
 ID_FILE_CLOSE = ui.id.new()
 
 ID_HELP_MANUAL = ui.id.new()
@@ -73,6 +74,7 @@ function meta.__index:init()
 	self.events = {
 		onBreakPointChanged = {},
 		onFileOpen = {},
+		onFileOpenWith = {},
 		onFileClosed = {},
 		onApplicationExiting = {},
 		onScrollChanged = {},
@@ -125,6 +127,7 @@ function meta.__index:initLayout_()
 
 	local fileMenu = wx.wxMenu()
 	fileMenu:Append( ID_FILE_OPEN, "&Open\tCtrl-O", "Open a source file" )
+	fileMenu:Append( ID_FILE_OPEN_WITH, "&Open With...\tCtrl-S", "Open current source file in external application" )
 	fileMenu:Append( ID_FILE_CLOSE, "&Close\tCtrl-F4", "Close the current source file" )
 	fileMenu:Append( ID_EXIT, "E&xit\tAlt-F4", "Exit the GRLD server" )
 
@@ -148,6 +151,7 @@ function meta.__index:initLayout_()
 
 	local hotkeyBindings = wx.wxAcceleratorTable({
 		{ wx.wxACCEL_CTRL,			string.byte('O'),	ID_FILE_OPEN },
+		{ wx.wxACCEL_CTRL,			string.byte('S'),	ID_FILE_OPEN_WITH },
 		{ wx.wxACCEL_CTRL,			string.byte('W'),	ID_FILE_CLOSE },
 		{ wx.wxACCEL_CTRL,			wx.WXK_F4,			ID_FILE_CLOSE },
 		{ wx.wxACCEL_ALT,			wx.WXK_F4,			ID_EXIT },
@@ -161,6 +165,7 @@ function meta.__index:initLayout_()
 	self.frame:SetAcceleratorTable( hotkeyBindings )
 
 	self.frame:Connect( ID_FILE_OPEN, wx.wxEVT_COMMAND_MENU_SELECTED, function( ... ) self:onFileOpen_( ... ) end )
+	self.frame:Connect( ID_FILE_OPEN_WITH, wx.wxEVT_COMMAND_MENU_SELECTED, function( ... ) self:onFileOpenWith_( ... ) end )
 	self.frame:Connect( ID_FILE_CLOSE, wx.wxEVT_COMMAND_MENU_SELECTED, function( ... ) self:onFileClose_( ... ) end )
 	self.frame:Connect( ID_HELP_MANUAL, wx.wxEVT_COMMAND_MENU_SELECTED, function( ... ) self:onHelpManual_( ... ) end )
 	self.frame:Connect( ID_HELP_ABOUT, wx.wxEVT_COMMAND_MENU_SELECTED, function( ... ) self:onHelpAbout_( ... ) end )
@@ -219,6 +224,13 @@ function meta.__index:onFileOpen_( event )
 
 	if fullPath ~= nil then
 		self:runEvents_( "onFileOpen", fullPath )
+	end
+end
+
+function meta.__index:onFileOpenWith_( event )
+	source, linenum = self:findSourcePageFocus()
+	if source then
+		self:runEvents_( "onFileOpenWith", source, linenum )
 	end
 end
 
@@ -395,6 +407,17 @@ end
 
 function meta.__index:notification( text )
 	return self.notificationPopup:run( text )
+end
+
+function meta.__index:externalCommandPopup( )
+	local dlg = wx.wxTextEntryDialog( self.frame, "", "External Editor Command" )
+	local externalCmd
+	dlg:SetValue("subl ${sourcepath}:${linenum}")
+	if dlg:ShowModal() == wx.wxID_OK then
+		externalCmd = dlg:GetValue()
+	end
+	dlg:Destroy()
+	return externalCmd
 end
 
 function meta.__index:setActive()
