@@ -15,6 +15,7 @@ local string = string
 local pairs = pairs
 local print = print
 local table = table
+local floor = math.floor
 local os = os
 
 module( "ui.sourcePage" )
@@ -92,6 +93,10 @@ end
 
 function meta.__index:GetScrollPos()
 	return self.editor.editor:GetScrollPos( wx.wxVERTICAL )
+end
+
+function meta.__index:GetVisibleCenterLineNum()
+	return self:GetScrollPos() + floor( self.editor.editor:LinesOnScreen() / 2 )
 end
 
 function meta.__index:setCurrentLine( line )

@@ -228,9 +228,11 @@ function meta.__index:onFileOpen_( event )
 end
 
 function meta.__index:onFileOpenWith_( event )
-	source, linenum = self:findSourcePageFocus()
+	local source = self:findSourcePageFocus()
+
 	if source then
-		self:runEvents_( "onFileOpenWith", source, linenum )
+		local centerLineNum = self:findSourcePage( source ):GetVisibleCenterLineNum()
+		self:runEvents_( "onFileOpenWith", source, centerLineNum )
 	end
 end
 

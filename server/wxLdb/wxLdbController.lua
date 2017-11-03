@@ -32,6 +32,7 @@ local debug = debug
 local xpcall = xpcall
 local table = table
 local os = os
+local max = math.max
 
 module( "wxLdbController" )
 
@@ -503,7 +504,7 @@ function meta.__index:onFileOpen_( path )
 	self:refreshScrollPosition_()
 end
 
-function meta.__index:onFileOpenWith_( source, linenum )
+function meta.__index:onFileOpenWith_( source, centerLineNum )
 	local clientConfig = self:getActiveClientConfig_()
 	local externalCmd = clientConfig.externalEditorCommand
 
@@ -515,7 +516,7 @@ function meta.__index:onFileOpenWith_( source, linenum )
 
 	local cmdvars = {
 		sourcepath = string.sub( source, 2 ),
-		linenum = linenum,
+		linenum = centerLineNum,
 	}
 
 	local fullCmd = string.gsub(externalCmd, "${(.-)}", function(key) return cmdvars[key] end)
