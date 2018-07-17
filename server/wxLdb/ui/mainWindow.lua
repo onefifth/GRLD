@@ -93,9 +93,24 @@ function meta.__index:close()
 	self.frame:Close()
 end
 
+local MAX_SOURCE_FILE_NAME_SIZE = 42
+
 function meta.__index:initLayout_()
 	self.root = wx.wxSplitterWindow( self.frame, ID_ROOT_SPLITTER, wx.wxDefaultPosition, wx.wxDefaultSize, 0 ) -- root widget
-	self.sourceBook = wxaui.wxAuiNotebook( self.root, wx.wxID_ANY ) -- book of source code pages
+
+	local style = wxaui.wxAUI_NB_DEFAULT_STYLE + wxaui.wxAUI_NB_WINDOWLIST_BUTTON
+	local measuringFont = wx.wxFont(8, wx.wxFONTFAMILY_DEFAULT, wx.wxFONTSTYLE_NORMAL, wx.wxFONTWEIGHT_NORMAL)
+	local normalFont = wx.wxFont(8, wx.wxFONTFAMILY_DEFAULT, wx.wxFONTSTYLE_NORMAL, wx.wxFONTWEIGHT_NORMAL)
+	local unselectedFont = wx.wxFont(8, wx.wxFONTFAMILY_DEFAULT, wx.wxFONTSTYLE_NORMAL, wx.wxFONTWEIGHT_NORMAL)
+
+
+	self.sourceBook = wxaui.wxAuiNotebook( self.root, wx.wxID_ANY, wx.wxDefaultPosition, wx.wxDefaultSize, style ) -- book of source code pages
+	self.sourceBook:SetFont(normalFont)
+	self.sourceBook:SetNormalFont(unselectedFont)
+	self.sourceBook:SetMeasuringFont(measuringFont)
+
+	--self.sourceBook:SetArtProvider(wxaui.wxAuiSimpleTabArt.new())
+
 	self.debugRoot = wx.wxSplitterWindow( self.root, wx.wxID_ANY, wx.wxDefaultPosition, wx.wxDefaultSize, 0 )
 
 	-- threads window
@@ -284,7 +299,7 @@ function meta.__index:onHelpManual_()
 
 	-- other example (on Vista)
 	--HKEY_CLASSES_ROOT\HTTP\shell\open\command
-	--    (par défaut)    REG_SZ    "C:\Program Files\Mozilla Firefox\firefox.exe" -requestPending -osint -url "%1"
+	--    (par dï¿½faut)    REG_SZ    "C:\Program Files\Mozilla Firefox\firefox.exe" -requestPending -osint -url "%1"
 
 	-- parse returned data
 	local _, _, cmd = string.find( data, "REG_SZ%s+(.+)" )
@@ -338,9 +353,8 @@ function meta.__index:getSourcePage( source )
 		self.sourcePages[source] = page
 		local _, _, name = string.find( source, ".*[/\\](.*)" )
 		if name == nil then name = source end
-		local maxLen = 16
-		if #name > 16 then
-			name = string.sub( name, 1, 7 ).."..."..string.sub( name, -7 )
+		if #name > MAX_SOURCE_FILE_NAME_SIZE then
+			name = string.sub( name, 1, math.floor(MAX_SOURCE_FILE_NAME_SIZE / 2) - 1 ).."..."..string.sub( name, -(math.floor(MAX_SOURCE_FILE_NAME_SIZE / 2) - 1) )
 		end
 		page.pageIdx = self.sourceBook:GetPageCount()
 		self.sourceBook:AddPage( page:getRoot(), name )
